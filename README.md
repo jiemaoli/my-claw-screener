@@ -269,7 +269,7 @@ Quality (Buffett ≥5/10): 8
 
 Combined score = (Technical Score × 0.3) + (Fundamental Score × 0.7)
 
-- Technical Score: (Williams %R + 100) / 100
+- Technical Score: absolute Williams %R value (0–100)
 - Fundamental Score: (Buffett Score / 10) × 100
 
 ## npm Scripts

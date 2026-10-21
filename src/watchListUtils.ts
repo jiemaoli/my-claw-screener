@@ -22,7 +22,7 @@ export function parseTickerList(input: string): string[] {
 
 export function calculateCombinedScore(williamsR: number, buffettScore: number): number {
   const { tech, fundamental } = resolveConfig().screening;
-  const techScore = (williamsR + 100) / 100;
+  const techScore = Math.abs(williamsR);
   const fundamentalScore = (buffettScore / 10) * 100;
   return techScore * tech + fundamentalScore * fundamental;
 }

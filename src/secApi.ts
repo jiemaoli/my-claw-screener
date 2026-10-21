@@ -25,6 +25,7 @@ interface CompanyFactsResponse {
 interface TickerEntry {
   ticker: string;
   cik_str: number;
+  title: string;
 }
 
 interface CompanyTickerResponse {
@@ -41,10 +42,15 @@ export interface Financials {
   [key: string]: FinancialMetric;
 }
 
+export interface TickerInfo {
+  cik: string;
+  name: string;
+}
+
 export class SECClient {
   private headers: Record<string, string>;
   private cache: SECDataManager;
-  private tickerCikCache: Map<string, string>;
+  private tickerInfoCache: Map<string, TickerInfo>;
   private lastRequestTime: number = 0;
 
   constructor(userAgent?: string, cacheDb?: string) {
@@ -57,7 +63,7 @@ export class SECClient {
     }
     this.headers = { ...DEFAULT_HEADERS, "User-Agent": ua, From: extractEmailFromUserAgent(ua) };
     this.cache = new SECDataManager(cacheDb ?? config.dbPath.sec);
-    this.tickerCikCache = new Map();
+    this.tickerInfoCache = new Map();
   }
 
   private async makeRequest(url: string): Promise<unknown> {
@@ -102,10 +108,10 @@ export class SECClient {
     return data;
   }
 
-  async resolveTickerToCik(ticker: string): Promise<string | null> {
+  async resolveTicker(ticker: string): Promise<TickerInfo | null> {
     const tickerUpper = ticker.toUpperCase();
-    if (this.tickerCikCache.has(tickerUpper)) {
-      return this.tickerCikCache.get(tickerUpper) ?? null;
+    if (this.tickerInfoCache.has(tickerUpper)) {
+      return this.tickerInfoCache.get(tickerUpper) ?? null;
     }
 
     const url = "https://www.sec.gov/files/company_tickers.json";
@@ -114,14 +120,17 @@ export class SECClient {
     if (!data) return null;
 
     for (const entry of Object.values(data)) {
-      if (entry.ticker === tickerUpper) {
-        const cik = String(entry.cik_str).padStart(10, "0");
-        this.tickerCikCache.set(tickerUpper, cik);
-        return cik;
-      }
+      this.tickerInfoCache.set(entry.ticker.toUpperCase(), {
+        cik: String(entry.cik_str).padStart(10, "0"),
+        name: entry.title,
+      });
     }
 
-    return null;
+    return this.tickerInfoCache.get(tickerUpper) ?? null;
+  }
+
+  async resolveTickerToCik(ticker: string): Promise<string | null> {
+    return (await this.resolveTicker(ticker))?.cik ?? null;
   }
 
   close(): void {

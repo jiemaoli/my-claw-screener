@@ -1,5 +1,6 @@
 import YahooFinance from "yahoo-finance2";
 import { PriceDataManager, OHLC } from "./database.js";
+import { resolveConfig } from "./config.js";
 
 const yahooFinance = new YahooFinance({
   suppressNotices: ["ripHistorical"],
@@ -16,8 +17,8 @@ export interface PriceResult {
 export class PriceDataFetcher {
   private cache: PriceDataManager;
 
-  constructor(cacheDb: string = "price_cache.db") {
-    this.cache = new PriceDataManager(cacheDb);
+  constructor(cacheDb?: string) {
+    this.cache = new PriceDataManager(cacheDb ?? resolveConfig().dbPath.price);
   }
 
   async fetchStockPrices(

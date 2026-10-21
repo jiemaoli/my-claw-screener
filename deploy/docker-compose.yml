@@ -1,0 +1,81 @@
+name: claw-screener
+
+services:
+  dashboard:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: claw-screener:latest
+    container_name: claw-screener-dashboard
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    environment:
+      PORT: "5051"
+      TZ: Asia/Shanghai
+      SEC_DB_PATH: /app/data/sec_cache.db
+      PRICE_DB_PATH: /app/data/price_cache.db
+      CLAW_SCREENER_WATCHLIST_FILE: /app/data/watchlist.json
+      SCREEN_LOCK_PATH: /app/data/screening.lock
+      SCHEDULE_CONFIG_PATH: /app/data/schedule.json
+    volumes:
+      - ../data:/app/data
+    networks:
+      - default
+      - infra-net
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:5051/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 768M
+        reservations:
+          memory: 192M
+
+  scheduler:
+    image: claw-screener:latest
+    container_name: claw-screener-scheduler
+    restart: unless-stopped
+    depends_on:
+      dashboard:
+        condition: service_healthy
+    env_file:
+      - ../.env
+    environment:
+      TZ: Asia/Shanghai
+      SEC_DB_PATH: /app/data/sec_cache.db
+      PRICE_DB_PATH: /app/data/price_cache.db
+      CLAW_SCREENER_WATCHLIST_FILE: /app/data/watchlist.json
+      SCREEN_LOCK_PATH: /app/data/screening.lock
+      SCHEDULE_CONFIG_PATH: /app/data/schedule.json
+      SCHEDULE_STATE_PATH: /app/data/schedule-state.json
+    volumes:
+      - ../data:/app/data
+    command: ["node", "dist/schedulerService.js"]
+    networks:
+      - default
+      - infra-net
+    deploy:
+      resources:
+        limits:
+          cpus: "1.5"
+          memory: 1G
+        reservations:
+          memory: 256M
+
+networks:
+  default:
+  infra-net:
+    external: true
+    name: infrastructure_infra-net

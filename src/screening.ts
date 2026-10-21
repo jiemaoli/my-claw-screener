@@ -18,6 +18,8 @@ export interface OversoldStock {
 
 export interface QualityStock {
   ticker: string;
+  companyName: string;
+  currentPrice: number;
   williamsR: number;
   buffettScore: number;
   techScore: number;
@@ -84,11 +86,13 @@ export async function runCombinedScreening(
     console.log("  Phase 2: Skipping fundamental screening (Thai market - no SEC data)");
     qualityStocks = oversoldStocks.map((stock) => ({
       ticker: stock.ticker,
+      companyName: stock.ticker,
+      currentPrice: stock.priceData[stock.priceData.length - 1]?.Close ?? 0,
       williamsR: stock.williamsR,
       buffettScore: 0,
-      techScore: (stock.williamsR + 100) / 100,
+      techScore: Math.abs(stock.williamsR),
       fundamentalScore: 0,
-      combinedScore: stock.williamsR + 100,
+      combinedScore: Math.abs(stock.williamsR),
     }));
   } else {
     console.log("  Phase 2: Fundamental screening...");
@@ -98,10 +102,10 @@ export async function runCombinedScreening(
     for (const stock of oversoldStocks) {
       const ticker = stock.ticker;
 
-      const cik = await secClient.resolveTickerToCik(ticker);
-      if (!cik) continue;
+      const tickerInfo = await secClient.resolveTicker(ticker);
+      if (!tickerInfo) continue;
 
-      const companyFacts = await secClient.getCompanyFacts(cik);
+      const companyFacts = await secClient.getCompanyFacts(tickerInfo.cik);
       if (!companyFacts) continue;
 
       const financials = extractFinancialFacts(companyFacts);
@@ -111,12 +115,14 @@ export async function runCombinedScreening(
       const buffettScore = engine.getScore();
 
       if (buffettScore >= minBuffettScore) {
-        const techScore = (stock.williamsR + 100) / 100;
+        const techScore = Math.abs(stock.williamsR);
         const fundamentalScore = (buffettScore / 10) * 100;
         const combinedScore = calculateCombinedScore(stock.williamsR, buffettScore);
 
         qualityStocks.push({
           ticker,
+          companyName: tickerInfo.name,
+          currentPrice: stock.priceData[stock.priceData.length - 1]?.Close ?? 0,
           williamsR: stock.williamsR,
           buffettScore,
           techScore,
@@ -152,31 +158,37 @@ export async function runCombinedScreening(
   }
 
   if (format === "telegram") {
-    const lines = [
-      `📊 Combined Quality Screening (${marketName})`,
+    const lines: string[] = [
+      "🦞 <b>Claw Screener 推出</b>",
+      `📊 <b>Combined Quality Screening (${escapeHtml(marketName)})</b>`,
+      "数据源：Yahoo Finance（价格与 Williams %R）· SEC EDGAR（基本面）",
       `Scanned: ${tickers.length} stocks`,
       `Oversold: ${oversoldStocks.length}`,
       hasFundamentals
         ? `Quality (Buffett ≥${minBuffettScore}/10): ${qualityStocks.length}`
-        : `Oversold (Technical only - no SEC data): ${qualityStocks.length}\n`,
+        : `Oversold candidates: ${qualityStocks.length}`,
+      `🌟 Top ${Math.min(topN, qualityStocks.length)} Quality Opportunities:`,
+      "",
     ];
 
     if (qualityStocks.length > 0) {
-      lines.push(`🌟 Top ${Math.min(topN, qualityStocks.length)} Quality Opportunities:\n`);
-
       for (let i = 0; i < Math.min(topN, qualityStocks.length); i++) {
         const stock = qualityStocks[i];
+        const tickerUrl = `https://x.com/search?q=${encodeURIComponent(`$${stock.ticker}`)}&src=cashtag_click`;
+        const label =
+          stock.buffettScore >= 7
+            ? `Buy candidate around $${stock.currentPrice.toFixed(2)}`
+            : "Don’t buy yet";
         if (hasFundamentals) {
           lines.push(
-            `${i + 1}. **${stock.ticker}** — Combined: ${stock.combinedScore.toFixed(0)}% ` +
-              `| Buffett: ${stock.buffettScore}/10 | WR: ${stock.williamsR.toFixed(1)}`
+            `<a href="${tickerUrl}">$${stock.ticker}</a> (${escapeHtml(stock.companyName)}) — ${label}`
           );
         } else {
-          lines.push(`${i + 1}. **${stock.ticker}** — WR: ${stock.williamsR.toFixed(1)}`);
+          lines.push(`<a href="${tickerUrl}">$${stock.ticker}</a> — Oversold`);
         }
       }
     } else {
-      lines.push("❌ No quality stocks found matching criteria");
+      lines.push("No stocks matched the screening criteria.");
     }
 
     return { output: lines.join("\n"), qualityStocks };
@@ -227,6 +239,10 @@ export async function runCombinedScreening(
   }
 
   return { output: lines.join("\n"), qualityStocks };
+}
+
+function escapeHtml(value: string): string {
+  return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 }
 
 async function main() {

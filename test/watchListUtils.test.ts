@@ -14,7 +14,7 @@ describe("watchListUtils", () => {
 
   it("calculates combined score using screening weights", () => {
     const score = calculateCombinedScore(-80, 8);
-    assert.equal(score, 0.3 * ((-80 + 100) / 100) + 0.7 * 80);
+    assert.equal(score, 80);
   });
 
   it("infers Thai market from .BK suffix", () => {

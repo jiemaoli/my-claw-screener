@@ -320,7 +320,7 @@ The fundamental analysis evaluates stocks against Warren Buffett's criteria:
 
 Combined score = (Technical Score × 0.3) + (Fundamental Score × 0.7)
 
-- Technical Score: (Williams %R + 100) / 100
+- Technical Score: absolute Williams %R value (0–100)
 - Fundamental Score: (Buffett Score / 10) × 100
 
 ## Data Sources
