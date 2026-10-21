@@ -18,6 +18,7 @@ services:
       CLAW_SCREENER_WATCHLIST_FILE: /app/data/watchlist.json
       SCREEN_LOCK_PATH: /app/data/screening.lock
       SCHEDULE_CONFIG_PATH: /app/data/schedule.json
+      TELEGRAM_CONFIG_PATH: /app/data/telegram.json
     volumes:
       - ../data:/app/data
     networks:
@@ -60,6 +61,7 @@ services:
       SCREEN_LOCK_PATH: /app/data/screening.lock
       SCHEDULE_CONFIG_PATH: /app/data/schedule.json
       SCHEDULE_STATE_PATH: /app/data/schedule-state.json
+      TELEGRAM_CONFIG_PATH: /app/data/telegram.json
     volumes:
       - ../data:/app/data
     command: ["node", "dist/schedulerService.js"]

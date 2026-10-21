@@ -1,3 +1,5 @@
+import { loadTelegramConfig } from "./telegramConfig.js";
+
 const TELEGRAM_MESSAGE_LIMIT = 4000;
 
 interface TelegramResponse {
@@ -43,8 +45,7 @@ export async function sendTelegramMessage(
   message: string,
   parseMode?: "HTML" | "Markdown"
 ): Promise<void> {
-  const token = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.TELEGRAM_CHAT_ID;
+  const { botToken: token, chatId } = loadTelegramConfig();
 
   if (!token || !chatId) {
     throw new Error("TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID are required");

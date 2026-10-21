@@ -5,6 +5,7 @@ import { runTechnicalScreening } from "./technicalOnly.js";
 import { normalizeMarket } from "./types.js";
 import { acquireJobLock } from "./jobLock.js";
 import { loadScheduleConfig, saveScheduleConfig } from "./schedule.js";
+import { loadTelegramConfig, saveTelegramConfig } from "./telegramConfig.js";
 import {
   assertAuthConfigured,
   createSessionToken,
@@ -63,6 +64,16 @@ const page = `<!doctype html>
     .rule-block:last-child{margin-bottom:0}
     .rule-block h3{font-size:14.5px;margin:0 0 6px;color:var(--accent);font-weight:600}
     .rule-block p{margin:0;font-size:14px;line-height:1.65;color:#c0d0e6}
+    .settings-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin:22px 0}
+    .days{display:grid;grid-template-columns:repeat(auto-fit,minmax(72px,1fr));gap:7px;margin-top:7px}
+    .days label{margin:0;padding:8px 9px;background:#0a1425;border:1px solid var(--line);border-radius:8px;color:#cbd7e8}
+    .secret-field{position:relative}
+    .secret-field input{padding-right:46px}
+    .secret-toggle{position:absolute;right:5px;top:50%;transform:translateY(-50%);display:grid;place-items:center;width:36px;height:34px;margin:0;padding:0;border:0;background:transparent;color:var(--muted)}
+    .secret-toggle:hover{color:var(--text);background:#1e2c42}
+    .form-status{min-height:22px;margin:12px 0 0;color:var(--muted);font-size:13px}
+    .form-status.success{color:var(--accent)}
+    .form-status.error{color:var(--danger)}
   </style>
 </head>
 <body>
@@ -77,18 +88,21 @@ const page = `<!doctype html>
   <nav class="tabs" role="tablist">
     <button type="button" class="tab-btn active" role="tab" id="tab-btn-dashboard" aria-selected="true" data-tab="dashboard">
       <svg class="tab-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
-      <span>仪表盘</span>
+      <span>股票筛选</span>
     </button>
     <button type="button" class="tab-btn" role="tab" id="tab-btn-rules" aria-selected="false" data-tab="rules">
       <svg class="tab-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
       <span>选股逻辑与指标说明</span>
+    </button>
+    <button type="button" class="tab-btn" role="tab" id="tab-btn-settings" aria-selected="false" data-tab="settings">
+      <svg class="tab-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.6 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 8.6a1.7 1.7 0 0 0-.34-1.88l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 .6 1 1.7 1.7 0 0 0 1.88-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9c.14.37.36.7.65.97.3.26.68.41 1.08.43H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.51.6z"/></svg>
+      <span>定时任务与 TG 推送</span>
     </button>
   </nav>
   <div class="tab-panel active" id="panel-dashboard" role="tabpanel" aria-labelledby="tab-btn-dashboard">
     <section class="grid">
       <form class="card" id="screen"><h2>市场筛选</h2><label>模式</label><select name="mode"><option value="combined">技术 + 基本面</option><option value="technical">纯技术筛选</option></select><label>市场</label><select name="market"><option value="us">美股 S&amp;P 500</option><option value="th">泰股 SET</option></select><label>最少 Buffett 得分</label><input name="minScore" type="number" min="0" max="10" value="5"><label>Williams %R 阈值</label><input name="threshold" type="number" min="-100" max="0" value="-80"><label>结果数量</label><input name="topN" type="number" min="1" max="100" value="10"><button>开始筛选</button></form>
       <form class="card" id="analyze"><h2>单股分析</h2><label>股票代码</label><input name="ticker" maxlength="20" placeholder="AAPL 或 PTT.BK" required><button>分析股票</button></form>
-      <form class="card" id="schedule"><h2>定时筛选与 TG 推送</h2><label><input name="enabled" type="checkbox" style="width:auto"> 启用定时任务</label><label>执行时间（美东时间）</label><input name="time" type="time" value="18:15"><div class="hint" id="beijingTime"></div><label>执行日（按美东日期）</label><div id="days"><label><input type="checkbox" value="1" style="width:auto"> 周一</label><label><input type="checkbox" value="2" style="width:auto"> 周二</label><label><input type="checkbox" value="3" style="width:auto"> 周三</label><label><input type="checkbox" value="4" style="width:auto"> 周四</label><label><input type="checkbox" value="5" style="width:auto"> 周五</label><label><input type="checkbox" value="6" style="width:auto"> 周六</label><label><input type="checkbox" value="0" style="width:auto"> 周日</label></div><label>市场</label><select name="market"><option value="us">美股 S&amp;P 500</option><option value="th">泰股 SET</option></select><label>最低 Buffett 得分</label><input name="minScore" type="number" min="0" max="10" value="5"><label>推送数量</label><input name="topN" type="number" min="1" max="50" value="10"><button>保存定时任务</button></form>
     </section>
     <div class="status" id="status">就绪</div>
     <pre class="result" id="result">筛选可能需要数分钟，运行期间请保持页面开启。</pre>
@@ -117,6 +131,12 @@ const page = `<!doctype html>
       </div>
     </section>
   </div>
+  <div class="tab-panel" id="panel-settings" role="tabpanel" aria-labelledby="tab-btn-settings" hidden>
+    <section class="settings-grid">
+      <form class="card" id="schedule"><h2>定时筛选</h2><label><input name="enabled" type="checkbox" style="width:auto"> 启用定时任务</label><label>执行时间（美东时间）</label><input name="time" type="time" value="18:15"><div class="hint" id="beijingTime"></div><label>执行日（按美东日期）</label><div class="days" id="days"><label><input type="checkbox" value="1" style="width:auto"> 周一</label><label><input type="checkbox" value="2" style="width:auto"> 周二</label><label><input type="checkbox" value="3" style="width:auto"> 周三</label><label><input type="checkbox" value="4" style="width:auto"> 周四</label><label><input type="checkbox" value="5" style="width:auto"> 周五</label><label><input type="checkbox" value="6" style="width:auto"> 周六</label><label><input type="checkbox" value="0" style="width:auto"> 周日</label></div><label>市场</label><select name="market"><option value="us">美股 S&amp;P 500</option><option value="th">泰股 SET</option></select><label>最低 Buffett 得分</label><input name="minScore" type="number" min="0" max="10" value="5"><label>推送数量</label><input name="topN" type="number" min="1" max="50" value="10"><button>保存定时任务</button><div class="form-status" id="scheduleStatus"></div></form>
+      <form class="card" id="telegram"><h2>Telegram 推送配置</h2><label>BOT Token</label><div class="secret-field"><input name="botToken" id="botToken" type="password" autocomplete="off" spellcheck="false" required><button class="secret-toggle" id="toggleBotToken" type="button" aria-label="显示 BOT Token" title="显示 BOT Token"><svg class="eye-open" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div><div class="hint">Token 默认隐藏，点击小眼睛可查看完整信息。</div><label>Chat ID</label><input name="chatId" autocomplete="off" placeholder="例如 -1001234567890" required><button>保存 Telegram 配置</button><div class="form-status" id="telegramStatus"></div></form>
+    </section>
+  </div>
 </main>
 <script>
 const statusNode=document.querySelector('#status'),resultNode=document.querySelector('#result');
@@ -129,7 +149,11 @@ const scheduleForm=document.querySelector('#schedule');
 function updateBeijingTime(){const [hour,minute]=scheduleForm.elements.time.value.split(':').map(Number),now=new Date(),parts=Object.fromEntries(new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'numeric',second:'numeric',hourCycle:'h23'}).formatToParts(now).filter(part=>part.type!=='literal').map(part=>[part.type,Number(part.value)])),easternAsUtc=Date.UTC(parts.year,parts.month-1,parts.day,parts.hour,parts.minute,parts.second),offsetMinutes=Math.round((easternAsUtc-now.getTime())/60000),beijingTotal=hour*60+minute-offsetMinutes+480,dayOffset=Math.floor(beijingTotal/1440),normalized=(beijingTotal%1440+1440)%1440,beijingHour=String(Math.floor(normalized/60)).padStart(2,'0'),beijingMinute=String(normalized%60).padStart(2,'0');document.querySelector('#beijingTime').textContent='按当前美东时差，对应北京时间：'+(dayOffset>0?'次日 ':dayOffset<0?'前一日 ':'')+beijingHour+':'+beijingMinute+'（夏令时切换后会自动变化）';}
 fetch('/api/schedule').then(r=>{if(r.status===401){location.href='/login';throw new Error('unauthorized');}return r.json();}).then(config=>{scheduleForm.elements.enabled.checked=config.enabled;scheduleForm.elements.time.value=config.time;scheduleForm.elements.market.value=config.market;scheduleForm.elements.minScore.value=config.minScore;scheduleForm.elements.topN.value=config.topN;document.querySelectorAll('#days input').forEach(input=>input.checked=config.days.includes(Number(input.value)));updateBeijingTime();});
 scheduleForm.elements.time.addEventListener('input',updateBeijingTime);
-scheduleForm.addEventListener('submit',async event=>{event.preventDefault();const button=event.submitter;button.disabled=true;const data={enabled:scheduleForm.elements.enabled.checked,time:scheduleForm.elements.time.value,days:[...document.querySelectorAll('#days input:checked')].map(input=>Number(input.value)),market:scheduleForm.elements.market.value,minScore:Number(scheduleForm.elements.minScore.value),topN:Number(scheduleForm.elements.topN.value)};try{const response=await fetch('/api/schedule',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const result=await response.json();if(!response.ok)throw new Error(result.error);statusNode.className='status';statusNode.textContent='定时任务已保存';resultNode.textContent=JSON.stringify(result,null,2);}catch(error){statusNode.className='status error';statusNode.textContent=error.message;}finally{button.disabled=false;}});
+scheduleForm.addEventListener('submit',async event=>{event.preventDefault();const button=event.submitter,node=document.querySelector('#scheduleStatus');button.disabled=true;node.className='form-status';node.textContent='保存中…';const data={enabled:scheduleForm.elements.enabled.checked,time:scheduleForm.elements.time.value,days:[...document.querySelectorAll('#days input:checked')].map(input=>Number(input.value)),market:scheduleForm.elements.market.value,minScore:Number(scheduleForm.elements.minScore.value),topN:Number(scheduleForm.elements.topN.value)};try{const response=await fetch('/api/schedule',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const result=await response.json();if(!response.ok)throw new Error(result.error);node.className='form-status success';node.textContent='定时任务已保存';}catch(error){node.className='form-status error';node.textContent=error.message;}finally{button.disabled=false;}});
+const telegramForm=document.querySelector('#telegram'),botTokenInput=document.querySelector('#botToken'),tokenToggle=document.querySelector('#toggleBotToken');
+fetch('/api/telegram').then(r=>r.json().then(data=>{if(!r.ok)throw new Error(data.error||'读取 Telegram 配置失败');return data;})).then(config=>{telegramForm.elements.botToken.value=config.botToken;telegramForm.elements.chatId.value=config.chatId;}).catch(error=>{const node=document.querySelector('#telegramStatus');node.className='form-status error';node.textContent=error.message;});
+tokenToggle.addEventListener('click',()=>{const showing=botTokenInput.type==='text';botTokenInput.type=showing?'password':'text';tokenToggle.setAttribute('aria-label',showing?'显示 BOT Token':'隐藏 BOT Token');tokenToggle.setAttribute('title',showing?'显示 BOT Token':'隐藏 BOT Token');});
+telegramForm.addEventListener('submit',async event=>{event.preventDefault();const button=event.submitter,node=document.querySelector('#telegramStatus');button.disabled=true;node.className='form-status';node.textContent='保存中…';const data={botToken:telegramForm.elements.botToken.value,chatId:telegramForm.elements.chatId.value};try{const response=await fetch('/api/telegram',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const result=await response.json();if(!response.ok)throw new Error(result.error);node.className='form-status success';node.textContent='Telegram 配置已保存，后续推送立即生效';botTokenInput.type='password';}catch(error){node.className='form-status error';node.textContent=error.message;}finally{button.disabled=false;}});
 document.querySelector('#logout').addEventListener('click',async()=>{await fetch('/api/logout',{method:'POST'});location.href='/login';});
 </script></body></html>`;
 
@@ -241,6 +265,18 @@ async function handle(request: IncomingMessage, response: ServerResponse): Promi
   if (request.method === "PUT" && url.pathname === "/api/schedule") {
     try {
       sendJson(response, 200, saveScheduleConfig(await readJson(request)));
+    } catch (error) {
+      sendJson(response, 400, { error: error instanceof Error ? error.message : String(error) });
+    }
+    return;
+  }
+  if (request.method === "GET" && url.pathname === "/api/telegram") {
+    sendJson(response, 200, loadTelegramConfig());
+    return;
+  }
+  if (request.method === "PUT" && url.pathname === "/api/telegram") {
+    try {
+      sendJson(response, 200, saveTelegramConfig(await readJson(request)));
     } catch (error) {
       sendJson(response, 400, { error: error instanceof Error ? error.message : String(error) });
     }
