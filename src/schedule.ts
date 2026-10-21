@@ -13,7 +13,7 @@ export interface ScheduleConfig {
 
 export const DEFAULT_SCHEDULE: ScheduleConfig = {
   enabled: true,
-  time: "06:00",
+  time: "18:15",
   days: [1, 2, 3, 4, 5],
   market: "us",
   minScore: 5,

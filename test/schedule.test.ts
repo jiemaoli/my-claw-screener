@@ -27,7 +27,7 @@ describe("schedule", () => {
   });
 
   it("detects when a schedule is due", () => {
-    const monday = new Date(2026, 9, 19, 6, 0, 0);
+    const monday = new Date(2026, 9, 19, 18, 15, 0);
     assert.equal(isScheduleDue(DEFAULT_SCHEDULE, monday), true);
     monday.setMinutes(1);
     assert.equal(isScheduleDue(DEFAULT_SCHEDULE, monday), false);

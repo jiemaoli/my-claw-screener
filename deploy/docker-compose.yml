@@ -53,7 +53,7 @@ services:
     env_file:
       - ../.env
     environment:
-      TZ: Asia/Shanghai
+      TZ: America/New_York
       SEC_DB_PATH: /app/data/sec_cache.db
       PRICE_DB_PATH: /app/data/price_cache.db
       CLAW_SCREENER_WATCHLIST_FILE: /app/data/watchlist.json

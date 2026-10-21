@@ -17,6 +17,8 @@ Deploy the current local working tree from Windows:
 
 The script creates an archive excluding Git metadata, credentials, dependencies, build output, caches, and runtime data. It uploads the archive over SSH, builds the Docker image on the VPS, updates the Compose services, validates Nginx, and reloads the reverse proxy.
 
+The application provides its own login page. Set `APP_USERNAME`, `APP_PASSWORD`, and a random value of at least 32 characters in `APP_SESSION_SECRET`. The default screening schedule is 18:15 America/New_York on weekdays, corresponding to 06:15 Beijing time during US daylight saving time and 07:15 during standard time.
+
 Manual package deployment:
 
 ```powershell
