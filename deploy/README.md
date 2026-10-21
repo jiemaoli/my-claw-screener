@@ -19,6 +19,25 @@ The script creates an archive excluding Git metadata, credentials, dependencies,
 
 The application provides its own login page. Set `APP_USERNAME`, `APP_PASSWORD`, and a random value of at least 32 characters in `APP_SESSION_SECRET`. The default screening schedule is 18:15 America/New_York on weekdays, corresponding to 06:15 Beijing time during US daylight saving time and 07:15 during standard time.
 
+## fin_twt screening API
+
+Set `SCREENER_API_TOKEN` to a random value of at least 32 characters. Containers on `infrastructure_infra-net` can trigger a screening without sending Telegram messages:
+
+```http
+POST http://claw-screener-dashboard:5051/api/v1/screen
+Authorization: Bearer <SCREENER_API_TOKEN>
+Content-Type: application/json
+
+{
+  "strategy": "quality_oversold",
+  "market": "US",
+  "limit": 10,
+  "parameters": { "min_score": 5 }
+}
+```
+
+Use `strategy: "technical_oversold"` with an optional `parameters.threshold` for technical-only screening. The response follows shared screening schema `1.0` and returns normalized `candidates`. The legacy `/api/v1/fin-twt/screen` endpoint remains available during migration.
+
 Manual package deployment:
 
 ```powershell

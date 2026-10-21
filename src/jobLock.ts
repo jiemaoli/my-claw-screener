@@ -1,10 +1,19 @@
-import { closeSync, existsSync, openSync, statSync, unlinkSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import {
+  closeSync,
+  existsSync,
+  mkdirSync,
+  openSync,
+  statSync,
+  unlinkSync,
+  writeFileSync,
+} from "node:fs";
+import { dirname, join } from "node:path";
 
 const staleAfterMs = 6 * 60 * 60 * 1000;
 
 export function acquireJobLock(): () => void {
   const lockPath = process.env.SCREEN_LOCK_PATH ?? join(process.cwd(), "data", "screening.lock");
+  mkdirSync(dirname(lockPath), { recursive: true });
 
   if (existsSync(lockPath) && Date.now() - statSync(lockPath).mtimeMs > staleAfterMs) {
     unlinkSync(lockPath);

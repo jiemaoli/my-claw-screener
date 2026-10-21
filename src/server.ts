@@ -1,11 +1,14 @@
+import { randomUUID } from "node:crypto";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { analyzeStock } from "./analyze.js";
 import { runCombinedScreening } from "./screening.js";
 import { runTechnicalScreening } from "./technicalOnly.js";
 import { normalizeMarket } from "./types.js";
+import { buildScreeningEnvelope } from "./screenerApi.js";
 import { acquireJobLock } from "./jobLock.js";
 import { loadScheduleConfig, saveScheduleConfig } from "./schedule.js";
 import { loadTelegramConfig, saveTelegramConfig } from "./telegramConfig.js";
+import { isFinTwtAuthenticated } from "./integrationAuth.js";
 import {
   assertAuthConfigured,
   createSessionToken,
@@ -195,10 +198,43 @@ async function handleScreen(body: Record<string, unknown>): Promise<unknown> {
   return JSON.parse(result.output) as unknown;
 }
 
+function standardScreenRequest(body: Record<string, unknown>): Record<string, unknown> {
+  const strategy = String(body.strategy ?? "quality_oversold");
+  const parameters =
+    body.parameters && typeof body.parameters === "object"
+      ? (body.parameters as Record<string, unknown>)
+      : {};
+  if (!["quality_oversold", "technical_oversold"].includes(strategy)) {
+    throw new Error("strategy must be quality_oversold or technical_oversold");
+  }
+  return {
+    mode: strategy === "technical_oversold" ? "technical" : "combined",
+    market: body.market ?? "us",
+    topN: body.limit ?? parameters.top_n ?? 10,
+    minScore: parameters.min_score ?? parameters.min_buffett_score ?? 5,
+    threshold: parameters.threshold ?? -80,
+    strategy,
+  };
+}
+
 async function handle(request: IncomingMessage, response: ServerResponse): Promise<void> {
   const url = new URL(request.url ?? "/", `http://${request.headers.host ?? "localhost"}`);
   if (request.method === "GET" && url.pathname === "/api/health") {
     sendJson(response, 200, { ok: true, running });
+    return;
+  }
+  if (request.method === "GET" && url.pathname === "/api/v1/capabilities") {
+    if (!isFinTwtAuthenticated(request)) {
+      sendJson(response, 401, { error: "Invalid API token" });
+      return;
+    }
+    sendJson(response, 200, {
+      schema_versions: ["1.0"],
+      provider: "claw-screener",
+      markets: ["US", "TH"],
+      strategies: ["quality_oversold", "technical_oversold"],
+      execution: "synchronous",
+    });
     return;
   }
   if (request.method === "GET" && url.pathname === "/login") {
@@ -228,6 +264,60 @@ async function handle(request: IncomingMessage, response: ServerResponse): Promi
       "Set-Cookie": sessionCookie(createSessionToken(username)),
     });
     response.end(JSON.stringify({ ok: true }));
+    return;
+  }
+
+  if (
+    request.method === "POST" &&
+    ["/api/v1/screen", "/api/v1/fin-twt/screen"].includes(url.pathname)
+  ) {
+    if (!isFinTwtAuthenticated(request)) {
+      sendJson(response, 401, { error: "Invalid API token" });
+      return;
+    }
+    if (running) {
+      sendJson(response, 409, { error: "A screening job is already running" });
+      return;
+    }
+
+    running = true;
+    let releaseLock: (() => void) | undefined;
+    const startedAt = Date.now();
+    try {
+      releaseLock = acquireJobLock();
+      const body = await readJson(request);
+      if (url.pathname === "/api/v1/fin-twt/screen") {
+        const result = await handleScreen(body);
+        sendJson(response, 200, {
+          ok: true,
+          source: "Claw Screener",
+          telegramSent: false,
+          generatedAt: new Date().toISOString(),
+          durationMs: Date.now() - startedAt,
+          result,
+        });
+        return;
+      }
+      const standardRequest = standardScreenRequest(body);
+      const result = (await handleScreen(standardRequest)) as Record<string, unknown>;
+      const generatedAt = new Date().toISOString();
+      sendJson(response, 200, {
+        ...buildScreeningEnvelope(result, {
+          strategy: String(standardRequest.strategy),
+          market: normalizeMarket(String(standardRequest.market)),
+          runId: randomUUID().replaceAll("-", ""),
+          generatedAt,
+          durationMs: Date.now() - startedAt,
+        }),
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(error);
+      sendJson(response, 400, { error: message });
+    } finally {
+      releaseLock?.();
+      running = false;
+    }
     return;
   }
 

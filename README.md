@@ -49,12 +49,13 @@ npm run screening [options]
 ```
 
 **Options:**
-| Flag | Description | Default |
-|------|-------------|---------|
-| `--market` | Market: `us` or `bk` | `us` |
-| `--min-score` | Minimum Buffett score (0-10) | `5` |
-| `--top-n` | Number of results to show | `10` |
-| `--format` | Output: `text`, `json`, `telegram` | `text` |
+
+| Flag          | Description                        | Default |
+| ------------- | ---------------------------------- | ------- |
+| `--market`    | Market: `us` or `bk`               | `us`    |
+| `--min-score` | Minimum Buffett score (0-10)       | `5`     |
+| `--top-n`     | Number of results to show          | `10`    |
+| `--format`    | Output: `text`, `json`, `telegram` | `text`  |
 
 **Examples:**
 
@@ -84,12 +85,13 @@ npm run technical [options]
 ```
 
 **Options:**
-| Flag | Description | Default |
-|------|-------------|---------|
-| `--market` | Market: `us` or `bk` | `us` |
-| `--threshold` | Williams %R threshold (e.g., -80) | `-80` |
-| `--top-n` | Number of results to show | `20` |
-| `--format` | Output: `text`, `json`, `telegram` | `text` |
+
+| Flag          | Description                        | Default |
+| ------------- | ---------------------------------- | ------- |
+| `--market`    | Market: `us` or `bk`               | `us`    |
+| `--threshold` | Williams %R threshold (e.g., -80)  | `-80`   |
+| `--top-n`     | Number of results to show          | `20`    |
+| `--format`    | Output: `text`, `json`, `telegram` | `text`  |
 
 **Examples:**
 
@@ -113,9 +115,10 @@ npm run analyze -- <ticker> [options]
 ```
 
 **Options:**
-| Flag | Description | Default |
-|------|-------------|---------|
-| `--format` | Output: `text`, `json`, `telegram` | `text` |
+
+| Flag       | Description                        | Default |
+| ---------- | ---------------------------------- | ------- |
+| `--format` | Output: `text`, `json`, `telegram` | `text`  |
 
 **Examples:**
 
@@ -148,20 +151,21 @@ npm run compounder [options]
 ```
 
 **Options:**
-| Flag | Description | Default |
-|------|-------------|---------|
-| `--market` | Market universe: `us` or `bk` | `us` |
-| `--tickers` | Comma-separated tickers (overrides market universe) | - |
-| `--max-tickers` | Limit number of tickers scanned | all |
-| `--top-n` | Number of passing stocks to print | `25` |
-| `--concurrency` | Parallel fetch workers | `4` |
-| `--format` | Output: `text` or `json` | `text` |
-| `--db-path` | SQLite cache path | `sec_cache.db` |
-| `--ttl-days` | Cache TTL in days | `7` |
-| `--min-roic` | ROIC threshold (%) | `15` |
-| `--min-op-margin` | Operating margin threshold (%) | `20` |
-| `--min-buyback` | Required 3Y share reduction (%) | `2` |
-| `--show-rejected` | Include failed tickers with reasons in output | off |
+
+| Flag              | Description                                         | Default        |
+| ----------------- | --------------------------------------------------- | -------------- |
+| `--market`        | Market universe: `us` or `bk`                       | `us`           |
+| `--tickers`       | Comma-separated tickers (overrides market universe) | -              |
+| `--max-tickers`   | Limit number of tickers scanned                     | all            |
+| `--top-n`         | Number of passing stocks to print                   | `25`           |
+| `--concurrency`   | Parallel fetch workers                              | `4`            |
+| `--format`        | Output: `text` or `json`                            | `text`         |
+| `--db-path`       | SQLite cache path                                   | `sec_cache.db` |
+| `--ttl-days`      | Cache TTL in days                                   | `7`            |
+| `--min-roic`      | ROIC threshold (%)                                  | `15`           |
+| `--min-op-margin` | Operating margin threshold (%)                      | `20`           |
+| `--min-buyback`   | Required 3Y share reduction (%)                     | `2`            |
+| `--show-rejected` | Include failed tickers with reasons in output       | off            |
 
 **Examples:**
 

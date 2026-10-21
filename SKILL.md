@@ -100,13 +100,14 @@ npm run screening [options]
 ```
 
 **Options:**
-| Flag | Description | Default |
-|------|-------------|---------|
-| `--market` | Market: `us` or `bk` | `us` |
-| `--min-score` | Minimum Buffett score (0-10) | `5` |
-| `--top-n` | Number of results to show | `10` |
-| `--format` | Output: `text`, `json`, `telegram` | `text` |
-| `--add-top` | Add top N screening picks to the watchlist | off |
+
+| Flag          | Description                                | Default |
+| ------------- | ------------------------------------------ | ------- |
+| `--market`    | Market: `us` or `bk`                       | `us`    |
+| `--min-score` | Minimum Buffett score (0-10)               | `5`     |
+| `--top-n`     | Number of results to show                  | `10`    |
+| `--format`    | Output: `text`, `json`, `telegram`         | `text`  |
+| `--add-top`   | Add top N screening picks to the watchlist | off     |
 
 **Examples:**
 
@@ -130,12 +131,13 @@ npm run technical [options]
 ```
 
 **Options:**
-| Flag | Description | Default |
-|------|-------------|---------|
-| `--market` | Market: `us` or `bk` | `us` |
-| `--threshold` | Williams %R threshold | `-80` |
-| `--top-n` | Number of results to show | `20` |
-| `--format` | Output: `text`, `json`, `telegram` | `text` |
+
+| Flag          | Description                        | Default |
+| ------------- | ---------------------------------- | ------- |
+| `--market`    | Market: `us` or `bk`               | `us`    |
+| `--threshold` | Williams %R threshold              | `-80`   |
+| `--top-n`     | Number of results to show          | `20`    |
+| `--format`    | Output: `text`, `json`, `telegram` | `text`  |
 
 **Examples:**
 
@@ -156,9 +158,10 @@ npm run analyze -- <ticker> [options]
 ```
 
 **Options:**
-| Flag | Description | Default |
-|------|-------------|---------|
-| `--format` | Output: `text`, `json`, `telegram` | `text` |
+
+| Flag       | Description                        | Default |
+| ---------- | ---------------------------------- | ------- |
+| `--format` | Output: `text`, `json`, `telegram` | `text`  |
 
 **Examples:**
 
@@ -186,20 +189,21 @@ npm run compounder [options]
 ```
 
 **Options:**
-| Flag | Description | Default |
-|------|-------------|---------|
-| `--market` | Market universe: `us` or `bk` | `us` |
-| `--tickers` | Comma-separated tickers (overrides market universe) | - |
-| `--max-tickers` | Limit universe size | all |
-| `--top-n` | Number of passing stocks to show | `25` |
-| `--concurrency` | Parallel fetch workers | `4` |
-| `--format` | Output: `text` or `json` | `text` |
-| `--db-path` | SQLite cache path | `sec_cache.db` |
-| `--ttl-days` | Cache TTL in days | `7` |
-| `--min-roic` | ROIC threshold (%) | `15` |
-| `--min-op-margin` | Operating margin threshold (%) | `20` |
-| `--min-buyback` | Required 3Y share reduction (%) | `2` |
-| `--show-rejected` | Include failed tickers with reasons in output | off |
+
+| Flag              | Description                                         | Default        |
+| ----------------- | --------------------------------------------------- | -------------- |
+| `--market`        | Market universe: `us` or `bk`                       | `us`           |
+| `--tickers`       | Comma-separated tickers (overrides market universe) | -              |
+| `--max-tickers`   | Limit universe size                                 | all            |
+| `--top-n`         | Number of passing stocks to show                    | `25`           |
+| `--concurrency`   | Parallel fetch workers                              | `4`            |
+| `--format`        | Output: `text` or `json`                            | `text`         |
+| `--db-path`       | SQLite cache path                                   | `sec_cache.db` |
+| `--ttl-days`      | Cache TTL in days                                   | `7`            |
+| `--min-roic`      | ROIC threshold (%)                                  | `15`           |
+| `--min-op-margin` | Operating margin threshold (%)                      | `20`           |
+| `--min-buyback`   | Required 3Y share reduction (%)                     | `2`            |
+| `--show-rejected` | Include failed tickers with reasons in output       | off            |
 
 **Examples:**
 
@@ -246,22 +250,24 @@ npm run watchlist:<command> -- [options]
 | `check`           | Check for oversold, quality, overbought, and custom-threshold alerts |
 
 **Options:**
-| Flag | Description | Default |
-|------|-------------|---------|
-| `--market us\|th` | Market filter: `us` (US) or `th` (Thai) | all markets |
-| `--notes '...'` | Optional notes | - |
-| `--alert-threshold` | Williams %R threshold for alerts | - |
-| `--min-buffett-score` | Buffett score threshold for quality alerts | - |
-| `--fundamentals` | Include Buffett score in status (US stocks only, slower) | off |
-| `--format text\|json\|telegram` | Output format (list, status, check) | `text` |
-| `--repeat-alerts` | Re-emit alerts even if unchanged since last check | off |
+
+| Flag                            | Description                                              | Default     |
+| ------------------------------- | -------------------------------------------------------- | ----------- |
+| `--market us\|th`               | Market filter: `us` (US) or `th` (Thai)                  | all markets |
+| `--notes '...'`                 | Optional notes                                           | -           |
+| `--alert-threshold`             | Williams %R threshold for alerts                         | -           |
+| `--min-buffett-score`           | Buffett score threshold for quality alerts               | -           |
+| `--fundamentals`                | Include Buffett score in status (US stocks only, slower) | off         |
+| `--format text\|json\|telegram` | Output format (list, status, check)                      | `text`      |
+| `--repeat-alerts`               | Re-emit alerts even if unchanged since last check        | off         |
 
 **Exit codes (`check`):**
-| Code | Meaning |
-|------|---------|
-| `0` | No new alerts |
-| `1` | Fetch/check errors |
-| `2` | New alerts fired |
+
+| Code | Meaning            |
+| ---- | ------------------ |
+| `0`  | No new alerts      |
+| `1`  | Fetch/check errors |
+| `2`  | New alerts fired   |
 
 **Examples:**
 
