@@ -24,7 +24,162 @@ let running = false;
 const faviconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><defs><linearGradient id="bg" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#14233c"/><stop offset="100%" stop-color="#080f1a"/></linearGradient><linearGradient id="curve" x1="10" y1="31" x2="37" y2="13" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#38bdf8"/><stop offset="50%" stop-color="#34d399"/><stop offset="100%" stop-color="#45d6a7"/></linearGradient><linearGradient id="barGrad" x1="0" y1="14" x2="0" y2="38" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#45d6a7" stop-opacity="0.3"/><stop offset="100%" stop-color="#38bdf8" stop-opacity="0.06"/></linearGradient></defs><rect width="48" height="48" rx="12" fill="url(#bg)" stroke="#45d6a7" stroke-opacity="0.4" stroke-width="1.5"/><rect x="11" y="24" width="3.5" height="13" rx="1.75" fill="url(#barGrad)"/><rect x="19" y="29" width="3.5" height="8" rx="1.75" fill="url(#barGrad)"/><rect x="27" y="21" width="3.5" height="16" rx="1.75" fill="url(#barGrad)"/><rect x="35" y="15" width="3.5" height="22" rx="1.75" fill="url(#barGrad)"/><path d="M 10 19 C 14 20 16 31 20 31 C 26 31 31 22 37 13" fill="none" stroke="url(#curve)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M 30 13 H 37 V 20" fill="none" stroke="#45d6a7" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="20" cy="31" r="3.2" fill="#fbbf24"/><circle cx="20" cy="31" r="5.2" fill="none" stroke="#fbbf24" stroke-opacity="0.35" stroke-width="1.2"/><path d="M 38 4 Q 38 7 35 7 Q 38 7 38 10 Q 38 7 41 7 Q 38 7 38 4 Z" fill="#fbbf24"/></svg>`;
 
 const loginPage = `<!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>登录 · 优质回调股票筛选器</title><link rel="icon" type="image/svg+xml" href="/favicon.svg"><style>:root{color-scheme:dark;--bg:#09111f;--card:#111d31;--line:#283750;--text:#e6edf7;--muted:#93a4bd;--accent:#45d6a7;--danger:#ff718b}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at top,#172744 0,var(--bg) 55%);color:var(--text);font:15px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}.login{width:min(400px,calc(100% - 32px));padding:28px;background:rgba(17,29,49,.96);border:1px solid var(--line);border-radius:20px;box-shadow:0 24px 80px #0008}.login-brand{display:flex;align-items:center;gap:12px;margin-bottom:6px}.login-logo{display:flex;align-items:center;justify-content:center;width:38px;height:38px;flex-shrink:0}.login-logo svg{width:100%;height:100%;display:block}h1{margin:0;font-size:26px;letter-spacing:-.03em}p{color:var(--muted)}label{display:block;color:var(--muted);font-size:13px;margin:15px 0 6px}input,button{width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;background:#0a1425;color:var(--text)}button{margin-top:20px;border:0;background:var(--accent);color:#06251c;font-weight:750;cursor:pointer}.error{min-height:22px;color:var(--danger);margin-top:12px}</style></head><body><form class="login" id="login"><div class="login-brand"><span class="login-logo">${faviconSvg}</span><h1>优质回调股票筛选器</h1></div><p>登录后管理筛选、定时任务和 Telegram 推送。</p><label>账号</label><input name="username" autocomplete="username" required autofocus><label>密码</label><input name="password" type="password" autocomplete="current-password" required><button>登录</button><div class="error" id="error"></div></form><script>document.querySelector('#login').addEventListener('submit',async event=>{event.preventDefault();const button=event.submitter,error=document.querySelector('#error');button.disabled=true;error.textContent='';const data=Object.fromEntries(new FormData(event.currentTarget));try{const response=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const result=await response.json();if(!response.ok)throw new Error(result.error||'登录失败');location.href='/';}catch(reason){error.textContent=reason.message;}finally{button.disabled=false;}});</script></body></html>`;
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>登录 · 优质回调股票筛选器</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #070d18;
+      --card: rgba(16, 27, 47, 0.78);
+      --line: rgba(56, 80, 115, 0.5);
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --accent: #45d6a7;
+      --danger: #ff6b81;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(800px circle at 50% 10%, rgba(69, 214, 167, 0.12), transparent 45%),
+        radial-gradient(600px circle at 80% 80%, rgba(56, 189, 248, 0.08), transparent 40%),
+        #070d18;
+      color: var(--text);
+      font: 14.5px/1.5 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 20px;
+      -webkit-font-smoothing: antialiased;
+    }
+    .login {
+      width: min(420px, 100%);
+      padding: 38px 32px;
+      background: var(--card);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(69, 214, 167, 0.22);
+      border-radius: 22px;
+      box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.65), 0 0 35px -8px rgba(69, 214, 167, 0.12);
+    }
+    .login-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .login-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      flex-shrink: 0;
+      filter: drop-shadow(0 4px 10px rgba(69, 214, 167, 0.3));
+    }
+    .login-logo svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    h1 {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #f8fafc;
+    }
+    .login-desc {
+      color: var(--muted);
+      font-size: 13.5px;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    label {
+      display: block;
+      color: #cbd5e1;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 7px;
+    }
+    input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      padding: 12px 14px;
+      background: rgba(8, 15, 27, 0.85);
+      color: var(--text);
+      font-size: 14.5px;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+    input:focus {
+      border-color: var(--accent);
+      background: rgba(12, 22, 38, 0.95);
+      box-shadow: 0 0 0 3px rgba(69, 214, 167, 0.18);
+    }
+    button {
+      width: 100%;
+      margin-top: 10px;
+      border: 0;
+      border-radius: 11px;
+      padding: 13px;
+      background: linear-gradient(135deg, #45d6a7 0%, #20b885 100%);
+      color: #04241a;
+      font-size: 15px;
+      font-weight: 750;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(69, 214, 167, 0.32);
+      transition: all 0.18s ease;
+    }
+    button:hover:not(:disabled) {
+      box-shadow: 0 6px 22px rgba(69, 214, 167, 0.45);
+      transform: translateY(-1px);
+    }
+    button:active:not(:disabled) {
+      transform: translateY(0);
+    }
+    button:disabled {
+      opacity: 0.6;
+      cursor: wait;
+    }
+    .error {
+      min-height: 20px;
+      color: var(--danger);
+      font-size: 13px;
+      margin-top: 14px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <form class="login" id="login">
+    <div class="login-brand">
+      <span class="login-logo">${faviconSvg}</span>
+      <h1>优质回调股票筛选器</h1>
+    </div>
+    <p class="login-desc">登录后管理市场筛选、定时任务和 Telegram 推送。</p>
+    <div class="form-group">
+      <label for="usernameInput">账号</label>
+      <input id="usernameInput" name="username" autocomplete="username" placeholder="请输入管理员账号" required autofocus>
+    </div>
+    <div class="form-group">
+      <label for="passwordInput">密码</label>
+      <input id="passwordInput" name="password" type="password" autocomplete="current-password" placeholder="请输入密码" required>
+    </div>
+    <button type="submit">立即登录</button>
+    <div class="error" id="error"></div>
+  </form>
+<script>
+document.querySelector('#login').addEventListener('submit',async event=>{event.preventDefault();const button=event.submitter,error=document.querySelector('#error');button.disabled=true;error.textContent='';const data=Object.fromEntries(new FormData(event.currentTarget));try{const response=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const result=await response.json();if(!response.ok)throw new Error(result.error||'登录失败');location.href='/';}catch(reason){error.textContent=reason.message;}finally{button.disabled=false;}});
+</script>
+</body>
+</html>`;
 
 const page = `<!doctype html>
 <html lang="zh-CN">
@@ -34,55 +189,440 @@ const page = `<!doctype html>
   <title>优质回调股票筛选器</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <style>
-    :root{color-scheme:dark;--bg:#09111f;--card:#111d31;--line:#283750;--text:#e6edf7;--muted:#93a4bd;--accent:#45d6a7;--danger:#ff718b}
-    *{box-sizing:border-box}
-    body{margin:0;background:radial-gradient(circle at top,#172744 0,var(--bg) 46%);color:var(--text);font:15px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
-    .wrap{max-width:980px;margin:auto;padding:40px 20px 80px}
-    .top{display:flex;align-items:center;justify-content:space-between;gap:16px}
-    .brand{display:flex;align-items:center;gap:14px}
-    .brand-logo{display:flex;align-items:center;justify-content:center;width:40px;height:40px;flex-shrink:0}
-    .brand-logo svg{width:100%;height:100%;display:block}
-    h1{margin:0;font-size:clamp(24px,4vw,36px);letter-spacing:-.03em;font-weight:800}
-    .subtitle{margin:10px 0 0;color:var(--muted);font-size:14.5px;line-height:1.6;max-width:none;text-wrap:balance}
-    .logout{width:auto;margin:0;padding:8px 16px;background:#1e2c42;color:var(--text);border:1px solid var(--line);border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer;transition:all .15s ease}
-    .logout:hover{background:#2a3c5a;border-color:#3b5075}
-    .tabs{display:flex;gap:8px;margin:28px 0 0;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
-    .tabs::-webkit-scrollbar{display:none}
-    .tab-btn{display:inline-flex;align-items:center;gap:8px;width:auto;white-space:nowrap;padding:10px 18px;background:transparent;color:var(--muted);border:1px solid transparent;border-bottom:2px solid transparent;border-top-left-radius:10px;border-top-right-radius:10px;font-size:14.5px;font-weight:600;cursor:pointer;margin-bottom:-1px;transition:all .15s ease}
-    .tab-btn:hover{color:var(--text);background:rgba(255,255,255,.04)}
-    .tab-btn.active{color:var(--accent);background:rgba(69,214,167,.08);border-color:var(--line) var(--line) transparent;border-bottom:2px solid var(--accent)}
-    .tab-icon{flex-shrink:0}
-    .tab-panel{display:block}
-    .tab-panel[hidden]{display:none!important}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin:22px 0}
-    .card{background:rgba(17,29,49,.92);border:1px solid var(--line);border-radius:16px;padding:18px}
-    .card h2{font-size:16px;margin:0 0 14px}
-    label{display:block;color:var(--muted);font-size:13px;margin:12px 0 5px}
-    input,select,button{width:100%;border:1px solid var(--line);border-radius:9px;padding:10px 12px;background:#0a1425;color:var(--text)}
-    button{margin-top:16px;background:var(--accent);border:0;color:#06251c;font-weight:750;cursor:pointer}
-    button:disabled{opacity:.5;cursor:wait}
-    .hint{color:var(--accent);font-size:13px;margin-top:8px}
-    .result{min-height:180px;white-space:pre-wrap;overflow:auto;background:#070d18;border:1px solid var(--line);border-radius:14px;padding:18px;color:#cbd7e8}
-    .status{color:var(--muted);margin:12px 2px}
-    .error{color:var(--danger)}
-    .rules-card{margin:22px 0 0;padding:22px}
-    .rules-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--line)}
-    .rules-header h2{font-size:17px;margin:0;color:var(--text)}
-    .rules-badge{font-size:12px;color:var(--accent);background:rgba(69,214,167,.12);border:1px solid rgba(69,214,167,.25);border-radius:6px;padding:3px 10px;font-weight:600}
-    .rule-block{padding:14px 16px;margin-bottom:12px;background:rgba(10,20,37,.6);border:1px solid var(--line);border-radius:12px}
-    .rule-block:last-child{margin-bottom:0}
-    .rule-block h3{font-size:14.5px;margin:0 0 6px;color:var(--accent);font-weight:600}
-    .rule-block p{margin:0;font-size:14px;line-height:1.65;color:#c0d0e6}
-    .settings-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin:22px 0}
-    .days{display:grid;grid-template-columns:repeat(auto-fit,minmax(72px,1fr));gap:7px;margin-top:7px}
-    .days label{margin:0;padding:8px 9px;background:#0a1425;border:1px solid var(--line);border-radius:8px;color:#cbd7e8}
-    .secret-field{position:relative}
-    .secret-field input{padding-right:46px}
-    .secret-toggle{position:absolute;right:5px;top:50%;transform:translateY(-50%);display:grid;place-items:center;width:36px;height:34px;margin:0;padding:0;border:0;background:transparent;color:var(--muted)}
-    .secret-toggle:hover{color:var(--text);background:#1e2c42}
-    .form-status{min-height:22px;margin:12px 0 0;color:var(--muted);font-size:13px}
-    .form-status.success{color:var(--accent)}
-    .form-status.error{color:var(--danger)}
+    :root {
+      color-scheme: dark;
+      --bg: #070d18;
+      --card: rgba(17, 28, 48, 0.75);
+      --card-border: rgba(48, 70, 102, 0.55);
+      --line: rgba(45, 65, 95, 0.5);
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --accent: #45d6a7;
+      --danger: #ff6b81;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(1000px circle at 50% -120px, rgba(30, 58, 95, 0.5), transparent 65%),
+        radial-gradient(700px circle at 90% 15%, rgba(69, 214, 167, 0.07), transparent 45%),
+        #070d18;
+      color: var(--text);
+      font: 14.5px/1.55 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrap {
+      max-width: 1000px;
+      margin: auto;
+      padding: 36px 22px 80px;
+    }
+    .top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      flex-shrink: 0;
+      filter: drop-shadow(0 4px 12px rgba(69, 214, 167, 0.28));
+    }
+    .brand-logo svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    h1 {
+      margin: 0;
+      font-size: clamp(22px, 3.8vw, 32px);
+      letter-spacing: -0.03em;
+      font-weight: 800;
+      color: #f8fafc;
+    }
+    .subtitle {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+      max-width: none;
+      text-wrap: balance;
+    }
+    .logout {
+      width: auto;
+      margin: 0;
+      padding: 8px 16px;
+      background: rgba(255, 255, 255, 0.05);
+      color: #cbd5e1;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      backdrop-filter: blur(8px);
+    }
+    .logout:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.22);
+      color: #fff;
+    }
+    .tabs {
+      display: flex;
+      gap: 6px;
+      margin: 28px 0 0;
+      border-bottom: 1px solid var(--line);
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      width: auto;
+      white-space: nowrap;
+      padding: 11px 18px;
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid transparent;
+      border-bottom: 2px solid transparent;
+      border-top-left-radius: 11px;
+      border-top-right-radius: 11px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: -1px;
+      transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .tab-btn:hover {
+      color: #f8fafc;
+      background: rgba(255, 255, 255, 0.035);
+    }
+    .tab-btn.active {
+      color: var(--accent);
+      background: rgba(20, 35, 58, 0.6);
+      border-color: var(--card-border) var(--card-border) transparent;
+      border-bottom: 2px solid var(--accent);
+    }
+    .tab-icon { flex-shrink: 0; }
+    .tab-panel { display: block; }
+    .tab-panel[hidden] { display: none !important; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin: 24px 0;
+    }
+    .card {
+      background: linear-gradient(150deg, rgba(18, 31, 52, 0.75) 0%, rgba(11, 20, 35, 0.85) 100%);
+      border: 1px solid var(--card-border);
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: 0 12px 32px -10px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .card:hover {
+      border-color: rgba(69, 214, 167, 0.35);
+      box-shadow: 0 14px 38px -10px rgba(0, 0, 0, 0.6), 0 0 24px -6px rgba(69, 214, 167, 0.1);
+    }
+    .card h2 {
+      font-size: 16px;
+      font-weight: 700;
+      margin: 0 0 14px;
+      color: #f8fafc;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    label {
+      display: block;
+      color: #cbd5e1;
+      font-size: 12.5px;
+      font-weight: 500;
+      margin: 12px 0 5px;
+    }
+    input, select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: rgba(8, 15, 27, 0.85);
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      transition: all 0.18s ease;
+    }
+    input:focus, select:focus {
+      border-color: var(--accent);
+      background: rgba(12, 22, 38, 0.95);
+      box-shadow: 0 0 0 3px rgba(69, 214, 167, 0.18);
+    }
+    button {
+      margin-top: 18px;
+      background: linear-gradient(135deg, #45d6a7 0%, #20b885 100%);
+      border: 0;
+      border-radius: 10px;
+      padding: 11px 16px;
+      color: #04241a;
+      font-weight: 750;
+      font-size: 14px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(69, 214, 167, 0.3);
+      transition: all 0.18s ease;
+    }
+    button:hover:not(:disabled) {
+      box-shadow: 0 6px 20px rgba(69, 214, 167, 0.45);
+      transform: translateY(-1px);
+    }
+    button:active:not(:disabled) {
+      transform: translateY(0);
+    }
+    button:disabled {
+      opacity: 0.55;
+      cursor: wait;
+      box-shadow: none;
+    }
+    .hint {
+      color: var(--accent);
+      font-size: 12.5px;
+      margin-top: 8px;
+      line-height: 1.5;
+    }
+
+    .console-box {
+      margin-top: 24px;
+      background: rgba(7, 13, 23, 0.92);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 14px 40px -10px rgba(0, 0, 0, 0.6);
+    }
+    .console-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 11px 16px;
+      background: rgba(14, 23, 38, 0.9);
+      border-bottom: 1px solid var(--line);
+    }
+    .console-dots {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .console-dots span {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .dot-red { background: #ff5f56; }
+    .dot-yellow { background: #ffbd2e; }
+    .dot-green { background: #27c93f; }
+    .console-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12.5px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      display: inline-block;
+    }
+    .status-dot.running {
+      background: #ffbd2e;
+      box-shadow: 0 0 10px #ffbd2e;
+      animation: pulse 1s infinite alternate;
+    }
+    .status-dot.error {
+      background: var(--danger);
+      box-shadow: 0 0 8px var(--danger);
+    }
+    @keyframes pulse {
+      from { opacity: 0.5; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1.15); }
+    }
+    .status {
+      color: var(--muted);
+      font-size: 12.5px;
+      font-weight: 500;
+    }
+    .status.error {
+      color: var(--danger);
+    }
+    .result {
+      min-height: 200px;
+      max-height: 520px;
+      white-space: pre-wrap;
+      overflow: auto;
+      background: #060b14;
+      border: 0;
+      padding: 16px 18px;
+      color: #cbd5e1;
+      font: 13.5px/1.6 ui-monospace, "Cascadia Code", "Fira Code", Consolas, monospace;
+      margin: 0;
+    }
+    .result::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    .result::-webkit-scrollbar-track {
+      background: #060b14;
+    }
+    .result::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 4px;
+    }
+    .result::-webkit-scrollbar-thumb:hover {
+      background: #334155;
+    }
+
+    .rules-card {
+      margin: 24px 0 0;
+      padding: 26px;
+    }
+    .rules-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--line);
+    }
+    .rules-header h2 {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 0;
+      color: #f8fafc;
+    }
+    .rules-badge {
+      font-size: 12px;
+      color: var(--accent);
+      background: rgba(69, 214, 167, 0.12);
+      border: 1px solid rgba(69, 214, 167, 0.28);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-weight: 600;
+    }
+    .rule-block {
+      padding: 16px 18px;
+      margin-bottom: 14px;
+      background: rgba(8, 15, 27, 0.7);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      transition: border-color 0.2s;
+    }
+    .rule-block:hover {
+      border-color: rgba(69, 214, 167, 0.3);
+    }
+    .rule-block:last-child {
+      margin-bottom: 0;
+    }
+    .rule-block h3 {
+      font-size: 14.5px;
+      margin: 0 0 6px;
+      color: var(--accent);
+      font-weight: 650;
+    }
+    .rule-block p {
+      margin: 0;
+      font-size: 13.5px;
+      line-height: 1.65;
+      color: #cbd5e1;
+    }
+
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+      margin: 24px 0;
+    }
+    .days {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(68px, 1fr));
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .days label {
+      margin: 0;
+      padding: 8px 6px;
+      background: rgba(8, 15, 27, 0.85);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: #cbd5e1;
+      font-size: 12.5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .days label:hover {
+      border-color: var(--accent);
+    }
+    .secret-field {
+      position: relative;
+    }
+    .secret-field input {
+      padding-right: 46px;
+    }
+    .secret-toggle {
+      position: absolute;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 32px;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      border-radius: 6px;
+      box-shadow: none;
+    }
+    .secret-toggle:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: none;
+      transform: translateY(-50%);
+    }
+    .form-status {
+      min-height: 22px;
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .form-status.success { color: var(--accent); }
+    .form-status.error { color: var(--danger); }
   </style>
 </head>
 <body>
@@ -113,11 +653,57 @@ const page = `<!doctype html>
   </nav>
   <div class="tab-panel active" id="panel-dashboard" role="tabpanel" aria-labelledby="tab-btn-dashboard">
     <section class="grid">
-      <form class="card" id="screen"><h2>市场筛选</h2><label>模式</label><select name="mode"><option value="combined">技术 + 基本面</option><option value="technical">纯技术筛选</option></select><label>市场</label><select name="market"><option value="us">美股 S&amp;P 500</option><option value="th">泰股 SET</option></select><label>最少 Buffett 得分</label><input name="minScore" type="number" min="0" max="10" value="5"><label>Williams %R 阈值</label><input name="threshold" type="number" min="-100" max="0" value="-80"><label>结果数量</label><input name="topN" type="number" min="1" max="100" value="10"><button>开始筛选</button></form>
-      <form class="card" id="analyze"><h2>单股分析</h2><label>股票代码</label><input name="ticker" maxlength="20" placeholder="AAPL 或 PTT.BK" required><button>分析股票</button></form>
+      <form class="card" id="screen">
+        <h2>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+          <span>市场筛选</span>
+        </h2>
+        <label>模式</label>
+        <select name="mode">
+          <option value="combined">技术 + 基本面</option>
+          <option value="technical">纯技术筛选</option>
+        </select>
+        <label>市场</label>
+        <select name="market">
+          <option value="us">美股 S&amp;P 500</option>
+          <option value="th">泰股 SET</option>
+        </select>
+        <label>最少 Buffett 得分</label>
+        <input name="minScore" type="number" min="0" max="10" value="5">
+        <label>Williams %R 阈值</label>
+        <input name="threshold" type="number" min="-100" max="0" value="-80">
+        <label>结果数量</label>
+        <input name="topN" type="number" min="1" max="100" value="10">
+        <button type="submit">开始筛选</button>
+      </form>
+      <form class="card" id="analyze">
+        <h2>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <span>单股分析</span>
+        </h2>
+        <label>股票代码</label>
+        <input name="ticker" maxlength="20" placeholder="例如 AAPL 或 PTT.BK" required>
+        <button type="submit">分析股票</button>
+      </form>
     </section>
-    <div class="status" id="status">就绪</div>
-    <pre class="result" id="result">筛选可能需要数分钟，运行期间请保持页面开启。</pre>
+    <div class="console-box">
+      <div class="console-header">
+        <div class="console-dots">
+          <span class="dot-red"></span>
+          <span class="dot-yellow"></span>
+          <span class="dot-green"></span>
+        </div>
+        <div class="console-title">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+          <span>运行控制台</span>
+        </div>
+        <div class="status-indicator">
+          <span class="status-dot" id="statusDot"></span>
+          <span class="status" id="status">就绪</span>
+        </div>
+      </div>
+      <pre class="result" id="result">筛选可能需要数分钟，运行期间请保持页面开启。</pre>
+    </div>
   </div>
   <div class="tab-panel" id="panel-rules" role="tabpanel" aria-labelledby="tab-btn-rules" hidden>
     <section class="card rules-card">
@@ -145,16 +731,60 @@ const page = `<!doctype html>
   </div>
   <div class="tab-panel" id="panel-settings" role="tabpanel" aria-labelledby="tab-btn-settings" hidden>
     <section class="settings-grid">
-      <form class="card" id="schedule"><h2>定时筛选</h2><label><input name="enabled" type="checkbox" style="width:auto"> 启用定时任务</label><label>执行时间（美东时间）</label><input name="time" type="time" value="18:15"><div class="hint" id="beijingTime"></div><label>执行日（按美东日期）</label><div class="days" id="days"><label><input type="checkbox" value="1" style="width:auto"> 周一</label><label><input type="checkbox" value="2" style="width:auto"> 周二</label><label><input type="checkbox" value="3" style="width:auto"> 周三</label><label><input type="checkbox" value="4" style="width:auto"> 周四</label><label><input type="checkbox" value="5" style="width:auto"> 周五</label><label><input type="checkbox" value="6" style="width:auto"> 周六</label><label><input type="checkbox" value="0" style="width:auto"> 周日</label></div><label>市场</label><select name="market"><option value="us">美股 S&amp;P 500</option><option value="th">泰股 SET</option></select><label>最低 Buffett 得分</label><input name="minScore" type="number" min="0" max="10" value="5"><label>推送数量</label><input name="topN" type="number" min="1" max="50" value="10"><button>保存定时任务</button><div class="form-status" id="scheduleStatus"></div></form>
-      <form class="card" id="telegram"><h2>Telegram 推送配置</h2><label>BOT Token</label><div class="secret-field"><input name="botToken" id="botToken" type="password" autocomplete="off" spellcheck="false" required><button class="secret-toggle" id="toggleBotToken" type="button" aria-label="显示 BOT Token" title="显示 BOT Token"><svg class="eye-open" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></div><div class="hint">Token 默认隐藏，点击小眼睛可查看完整信息。</div><label>Chat ID</label><input name="chatId" autocomplete="off" placeholder="例如 -1001234567890" required><button>保存 Telegram 配置</button><div class="form-status" id="telegramStatus"></div></form>
+      <form class="card" id="schedule">
+        <h2>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span>定时筛选</span>
+        </h2>
+        <label><input name="enabled" type="checkbox" style="width:auto"> 启用定时任务</label>
+        <label>执行时间（美东时间）</label>
+        <input name="time" type="time" value="18:15">
+        <div class="hint" id="beijingTime"></div>
+        <label>执行日（按美东日期）</label>
+        <div class="days" id="days">
+          <label><input type="checkbox" value="1" style="width:auto"> 周一</label>
+          <label><input type="checkbox" value="2" style="width:auto"> 周二</label>
+          <label><input type="checkbox" value="3" style="width:auto"> 周三</label>
+          <label><input type="checkbox" value="4" style="width:auto"> 周四</label>
+          <label><input type="checkbox" value="5" style="width:auto"> 周五</label>
+          <label><input type="checkbox" value="6" style="width:auto"> 周六</label>
+          <label><input type="checkbox" value="0" style="width:auto"> 周日</label>
+        </div>
+        <label>市场</label>
+        <select name="market"><option value="us">美股 S&amp;P 500</option><option value="th">泰股 SET</option></select>
+        <label>最低 Buffett 得分</label>
+        <input name="minScore" type="number" min="0" max="10" value="5">
+        <label>推送数量</label>
+        <input name="topN" type="number" min="1" max="50" value="10">
+        <button type="submit">保存定时任务</button>
+        <div class="form-status" id="scheduleStatus"></div>
+      </form>
+      <form class="card" id="telegram">
+        <h2>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          <span>Telegram 推送配置</span>
+        </h2>
+        <label>BOT Token</label>
+        <div class="secret-field">
+          <input name="botToken" id="botToken" type="password" autocomplete="off" spellcheck="false" placeholder="输入 Telegram Bot Token" required>
+          <button class="secret-toggle" id="toggleBotToken" type="button" aria-label="显示 BOT Token" title="显示 BOT Token">
+            <svg class="eye-open" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <div class="hint">Token 默认隐藏，点击小眼睛可查看完整信息。</div>
+        <label>Chat ID</label>
+        <input name="chatId" autocomplete="off" placeholder="例如 -1001234567890" required>
+        <button type="submit">保存 Telegram 配置</button>
+        <div class="form-status" id="telegramStatus"></div>
+      </form>
     </section>
   </div>
 </main>
 <script>
-const statusNode=document.querySelector('#status'),resultNode=document.querySelector('#result');
+const statusNode=document.querySelector('#status'),statusDot=document.querySelector('#statusDot'),resultNode=document.querySelector('#result');
 const tabBtns=document.querySelectorAll('.tab-btn'),tabPanels=document.querySelectorAll('.tab-panel');
 tabBtns.forEach(btn=>{btn.addEventListener('click',()=>{const target=btn.dataset.tab;tabBtns.forEach(b=>{const active=b===btn;b.classList.toggle('active',active);b.setAttribute('aria-selected',active?'true':'false');});tabPanels.forEach(panel=>{const active=panel.id==='panel-'+target;panel.classList.toggle('active',active);if(active){panel.removeAttribute('hidden');}else{panel.setAttribute('hidden','');}});});});
-async function request(path,data,button){button.disabled=true;statusNode.className='status';statusNode.textContent='运行中…';resultNode.textContent='正在获取市场数据，请稍候。';try{const response=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const payload=await response.json();if(!response.ok)throw new Error(payload.error||'请求失败');resultNode.textContent=JSON.stringify(payload.result,null,2);statusNode.textContent='完成';}catch(error){statusNode.className='status error';statusNode.textContent=error.message;resultNode.textContent='';}finally{button.disabled=false;}}
+async function request(path,data,button){button.disabled=true;statusNode.className='status';statusNode.textContent='运行中…';if(statusDot)statusDot.className='status-dot running';resultNode.textContent='正在获取市场数据，请稍候。';try{const response=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const payload=await response.json();if(!response.ok)throw new Error(payload.error||'请求失败');resultNode.textContent=JSON.stringify(payload.result,null,2);statusNode.textContent='完成';if(statusDot)statusDot.className='status-dot';}catch(error){statusNode.className='status error';statusNode.textContent=error.message;if(statusDot)statusDot.className='status-dot error';resultNode.textContent='';}finally{button.disabled=false;}}
 document.querySelector('#screen').addEventListener('submit',event=>{event.preventDefault();const form=new FormData(event.currentTarget);request('/api/screen',Object.fromEntries(form),event.submitter);});
 document.querySelector('#analyze').addEventListener('submit',event=>{event.preventDefault();const form=new FormData(event.currentTarget);request('/api/analyze',Object.fromEntries(form),event.submitter);});
 const scheduleForm=document.querySelector('#schedule');
