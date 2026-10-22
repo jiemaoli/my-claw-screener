@@ -233,13 +233,17 @@ async function handle(request: IncomingMessage, response: ServerResponse): Promi
     return;
   }
   if (
-    request.method === "GET" &&
+    (request.method === "GET" || request.method === "HEAD") &&
     (url.pathname === "/favicon.ico" || url.pathname === "/favicon.svg")
   ) {
     response.writeHead(200, {
       "Content-Type": "image/svg+xml",
       "Cache-Control": "public, max-age=86400",
     });
+    if (request.method === "HEAD") {
+      response.end();
+      return;
+    }
     response.end(faviconSvg);
     return;
   }
