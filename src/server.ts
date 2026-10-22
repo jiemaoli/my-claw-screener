@@ -22,14 +22,14 @@ const port = Number.parseInt(process.env.PORT ?? "5051", 10);
 let running = false;
 
 const loginPage = `<!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>登录 · Claw 股票筛选器</title><style>:root{color-scheme:dark;--bg:#09111f;--card:#111d31;--line:#283750;--text:#e6edf7;--muted:#93a4bd;--accent:#45d6a7;--danger:#ff718b}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at top,#172744 0,var(--bg) 55%);color:var(--text);font:15px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}.login{width:min(400px,calc(100% - 32px));padding:28px;background:rgba(17,29,49,.96);border:1px solid var(--line);border-radius:20px;box-shadow:0 24px 80px #0008}h1{margin:0;font-size:30px}p{color:var(--muted)}label{display:block;color:var(--muted);font-size:13px;margin:15px 0 6px}input,button{width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;background:#0a1425;color:var(--text)}button{margin-top:20px;border:0;background:var(--accent);color:#06251c;font-weight:750;cursor:pointer}.error{min-height:22px;color:var(--danger);margin-top:12px}</style></head><body><form class="login" id="login"><h1>Claw 股票筛选器</h1><p>登录后管理筛选、定时任务和 Telegram 推送。</p><label>账号</label><input name="username" autocomplete="username" required autofocus><label>密码</label><input name="password" type="password" autocomplete="current-password" required><button>登录</button><div class="error" id="error"></div></form><script>document.querySelector('#login').addEventListener('submit',async event=>{event.preventDefault();const button=event.submitter,error=document.querySelector('#error');button.disabled=true;error.textContent='';const data=Object.fromEntries(new FormData(event.currentTarget));try{const response=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const result=await response.json();if(!response.ok)throw new Error(result.error||'登录失败');location.href='/';}catch(reason){error.textContent=reason.message;}finally{button.disabled=false;}});</script></body></html>`;
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>登录 · 优质回调股票筛选器</title><style>:root{color-scheme:dark;--bg:#09111f;--card:#111d31;--line:#283750;--text:#e6edf7;--muted:#93a4bd;--accent:#45d6a7;--danger:#ff718b}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at top,#172744 0,var(--bg) 55%);color:var(--text);font:15px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}.login{width:min(400px,calc(100% - 32px));padding:28px;background:rgba(17,29,49,.96);border:1px solid var(--line);border-radius:20px;box-shadow:0 24px 80px #0008}h1{margin:0;font-size:30px}p{color:var(--muted)}label{display:block;color:var(--muted);font-size:13px;margin:15px 0 6px}input,button{width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;background:#0a1425;color:var(--text)}button{margin-top:20px;border:0;background:var(--accent);color:#06251c;font-weight:750;cursor:pointer}.error{min-height:22px;color:var(--danger);margin-top:12px}</style></head><body><form class="login" id="login"><h1>优质回调股票筛选器</h1><p>登录后管理筛选、定时任务和 Telegram 推送。</p><label>账号</label><input name="username" autocomplete="username" required autofocus><label>密码</label><input name="password" type="password" autocomplete="current-password" required><button>登录</button><div class="error" id="error"></div></form><script>document.querySelector('#login').addEventListener('submit',async event=>{event.preventDefault();const button=event.submitter,error=document.querySelector('#error');button.disabled=true;error.textContent='';const data=Object.fromEntries(new FormData(event.currentTarget));try{const response=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const result=await response.json();if(!response.ok)throw new Error(result.error||'登录失败');location.href='/';}catch(reason){error.textContent=reason.message;}finally{button.disabled=false;}});</script></body></html>`;
 
 const page = `<!doctype html>
 <html lang="zh-CN">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Claw 股票筛选器</title>
+  <title>优质回调股票筛选器</title>
   <style>
     :root{color-scheme:dark;--bg:#09111f;--card:#111d31;--line:#283750;--text:#e6edf7;--muted:#93a4bd;--accent:#45d6a7;--danger:#ff718b}
     *{box-sizing:border-box}
@@ -83,7 +83,7 @@ const page = `<!doctype html>
 <main class="wrap">
   <header>
     <div class="top">
-      <h1>Claw 股票筛选器</h1>
+      <h1>优质回调股票筛选器</h1>
       <button class="logout" id="logout">退出登录</button>
     </div>
     <p class="subtitle">Williams %R 超卖信号结合 Buffett 基本面评分。支持美股 S&amp;P 500、泰股技术筛选及单股分析。</p>
@@ -91,7 +91,7 @@ const page = `<!doctype html>
   <nav class="tabs" role="tablist">
     <button type="button" class="tab-btn active" role="tab" id="tab-btn-dashboard" aria-selected="true" data-tab="dashboard">
       <svg class="tab-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
-      <span>股票筛选</span>
+      <span>优质回调股票筛选器</span>
     </button>
     <button type="button" class="tab-btn" role="tab" id="tab-btn-rules" aria-selected="false" data-tab="rules">
       <svg class="tab-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
