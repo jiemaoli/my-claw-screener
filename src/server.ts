@@ -21,8 +21,10 @@ import {
 const port = Number.parseInt(process.env.PORT ?? "5051", 10);
 let running = false;
 
+const faviconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><defs><linearGradient id="bg" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#14233c"/><stop offset="100%" stop-color="#080f1a"/></linearGradient><linearGradient id="curve" x1="10" y1="31" x2="37" y2="13" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#38bdf8"/><stop offset="50%" stop-color="#34d399"/><stop offset="100%" stop-color="#45d6a7"/></linearGradient><linearGradient id="barGrad" x1="0" y1="14" x2="0" y2="38" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#45d6a7" stop-opacity="0.3"/><stop offset="100%" stop-color="#38bdf8" stop-opacity="0.06"/></linearGradient></defs><rect width="48" height="48" rx="12" fill="url(#bg)" stroke="#45d6a7" stroke-opacity="0.4" stroke-width="1.5"/><rect x="11" y="24" width="3.5" height="13" rx="1.75" fill="url(#barGrad)"/><rect x="19" y="29" width="3.5" height="8" rx="1.75" fill="url(#barGrad)"/><rect x="27" y="21" width="3.5" height="16" rx="1.75" fill="url(#barGrad)"/><rect x="35" y="15" width="3.5" height="22" rx="1.75" fill="url(#barGrad)"/><path d="M 10 19 C 14 20 16 31 20 31 C 26 31 31 22 37 13" fill="none" stroke="url(#curve)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M 30 13 H 37 V 20" fill="none" stroke="#45d6a7" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="20" cy="31" r="3.2" fill="#fbbf24"/><circle cx="20" cy="31" r="5.2" fill="none" stroke="#fbbf24" stroke-opacity="0.35" stroke-width="1.2"/><path d="M 38 4 Q 38 7 35 7 Q 38 7 38 10 Q 38 7 41 7 Q 38 7 38 4 Z" fill="#fbbf24"/></svg>`;
+
 const loginPage = `<!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>登录 · 优质回调股票筛选器</title><style>:root{color-scheme:dark;--bg:#09111f;--card:#111d31;--line:#283750;--text:#e6edf7;--muted:#93a4bd;--accent:#45d6a7;--danger:#ff718b}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at top,#172744 0,var(--bg) 55%);color:var(--text);font:15px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}.login{width:min(400px,calc(100% - 32px));padding:28px;background:rgba(17,29,49,.96);border:1px solid var(--line);border-radius:20px;box-shadow:0 24px 80px #0008}h1{margin:0;font-size:30px}p{color:var(--muted)}label{display:block;color:var(--muted);font-size:13px;margin:15px 0 6px}input,button{width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;background:#0a1425;color:var(--text)}button{margin-top:20px;border:0;background:var(--accent);color:#06251c;font-weight:750;cursor:pointer}.error{min-height:22px;color:var(--danger);margin-top:12px}</style></head><body><form class="login" id="login"><h1>优质回调股票筛选器</h1><p>登录后管理筛选、定时任务和 Telegram 推送。</p><label>账号</label><input name="username" autocomplete="username" required autofocus><label>密码</label><input name="password" type="password" autocomplete="current-password" required><button>登录</button><div class="error" id="error"></div></form><script>document.querySelector('#login').addEventListener('submit',async event=>{event.preventDefault();const button=event.submitter,error=document.querySelector('#error');button.disabled=true;error.textContent='';const data=Object.fromEntries(new FormData(event.currentTarget));try{const response=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const result=await response.json();if(!response.ok)throw new Error(result.error||'登录失败');location.href='/';}catch(reason){error.textContent=reason.message;}finally{button.disabled=false;}});</script></body></html>`;
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>登录 · 优质回调股票筛选器</title><link rel="icon" type="image/svg+xml" href="/favicon.svg"><style>:root{color-scheme:dark;--bg:#09111f;--card:#111d31;--line:#283750;--text:#e6edf7;--muted:#93a4bd;--accent:#45d6a7;--danger:#ff718b}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at top,#172744 0,var(--bg) 55%);color:var(--text);font:15px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}.login{width:min(400px,calc(100% - 32px));padding:28px;background:rgba(17,29,49,.96);border:1px solid var(--line);border-radius:20px;box-shadow:0 24px 80px #0008}.login-brand{display:flex;align-items:center;gap:12px;margin-bottom:6px}.login-logo{display:flex;align-items:center;justify-content:center;width:38px;height:38px;flex-shrink:0}.login-logo svg{width:100%;height:100%;display:block}h1{margin:0;font-size:26px;letter-spacing:-.03em}p{color:var(--muted)}label{display:block;color:var(--muted);font-size:13px;margin:15px 0 6px}input,button{width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;background:#0a1425;color:var(--text)}button{margin-top:20px;border:0;background:var(--accent);color:#06251c;font-weight:750;cursor:pointer}.error{min-height:22px;color:var(--danger);margin-top:12px}</style></head><body><form class="login" id="login"><div class="login-brand"><span class="login-logo">${faviconSvg}</span><h1>优质回调股票筛选器</h1></div><p>登录后管理筛选、定时任务和 Telegram 推送。</p><label>账号</label><input name="username" autocomplete="username" required autofocus><label>密码</label><input name="password" type="password" autocomplete="current-password" required><button>登录</button><div class="error" id="error"></div></form><script>document.querySelector('#login').addEventListener('submit',async event=>{event.preventDefault();const button=event.submitter,error=document.querySelector('#error');button.disabled=true;error.textContent='';const data=Object.fromEntries(new FormData(event.currentTarget));try{const response=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});const result=await response.json();if(!response.ok)throw new Error(result.error||'登录失败');location.href='/';}catch(reason){error.textContent=reason.message;}finally{button.disabled=false;}});</script></body></html>`;
 
 const page = `<!doctype html>
 <html lang="zh-CN">
@@ -30,13 +32,17 @@ const page = `<!doctype html>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>优质回调股票筛选器</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <style>
     :root{color-scheme:dark;--bg:#09111f;--card:#111d31;--line:#283750;--text:#e6edf7;--muted:#93a4bd;--accent:#45d6a7;--danger:#ff718b}
     *{box-sizing:border-box}
     body{margin:0;background:radial-gradient(circle at top,#172744 0,var(--bg) 46%);color:var(--text);font:15px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
     .wrap{max-width:980px;margin:auto;padding:40px 20px 80px}
     .top{display:flex;align-items:center;justify-content:space-between;gap:16px}
-    h1{margin:0;font-size:clamp(26px,4.5vw,40px);letter-spacing:-.03em;font-weight:800}
+    .brand{display:flex;align-items:center;gap:14px}
+    .brand-logo{display:flex;align-items:center;justify-content:center;width:40px;height:40px;flex-shrink:0}
+    .brand-logo svg{width:100%;height:100%;display:block}
+    h1{margin:0;font-size:clamp(24px,4vw,36px);letter-spacing:-.03em;font-weight:800}
     .subtitle{margin:10px 0 0;color:var(--muted);font-size:14.5px;line-height:1.6;max-width:none;text-wrap:balance}
     .logout{width:auto;margin:0;padding:8px 16px;background:#1e2c42;color:var(--text);border:1px solid var(--line);border-radius:9px;font-size:13.5px;font-weight:600;cursor:pointer;transition:all .15s ease}
     .logout:hover{background:#2a3c5a;border-color:#3b5075}
@@ -83,7 +89,10 @@ const page = `<!doctype html>
 <main class="wrap">
   <header>
     <div class="top">
-      <h1>优质回调股票筛选器</h1>
+      <div class="brand">
+        <span class="brand-logo">${faviconSvg}</span>
+        <h1>优质回调股票筛选器</h1>
+      </div>
       <button class="logout" id="logout">退出登录</button>
     </div>
     <p class="subtitle">Williams %R 超卖信号结合 Buffett 基本面评分。支持美股 S&amp;P 500、泰股技术筛选及单股分析。</p>
@@ -221,6 +230,17 @@ async function handle(request: IncomingMessage, response: ServerResponse): Promi
   const url = new URL(request.url ?? "/", `http://${request.headers.host ?? "localhost"}`);
   if (request.method === "GET" && url.pathname === "/api/health") {
     sendJson(response, 200, { ok: true, running });
+    return;
+  }
+  if (
+    request.method === "GET" &&
+    (url.pathname === "/favicon.ico" || url.pathname === "/favicon.svg")
+  ) {
+    response.writeHead(200, {
+      "Content-Type": "image/svg+xml",
+      "Cache-Control": "public, max-age=86400",
+    });
+    response.end(faviconSvg);
     return;
   }
   if (request.method === "GET" && url.pathname === "/api/v1/capabilities") {
